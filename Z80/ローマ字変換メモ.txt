@@ -1,0 +1,30 @@
+﻿あ a	い i	う u	え e	お o	 
+か ka	き ki	く ku	け ke	こ ko	きゃ kya	きゅ kyu	きょ kyo
+さ sa	し si	す su	せ se	そ so	しゃ sya	しゅ syu	しょ syo
+た ta	ち ti	つ tu	て te	と to	ちゃ tya	ちゅ tyu	ちょ tyo
+な na	に ni	ぬ nu	ね ne	の no	にゃ nya	にゅ nyu	にょ nyo
+は ha	ひ hi	ふ hu	へ he	ほ ho	ひゃ hya	ひゅ hyu	ひょ hyo
+ま ma	み mi	む mu	め me	も mo	みゃ mya	みゅ myu	みょ myo
+や ya	い yi	ゆ yu	え ye	よ yo	 
+ら ra	り ri	る ru	れ re	ろ ro	りゃ rya	りゅ ryu	りょ ryo
+わ wa	ゐ wi	う wu	ゑ we	を wo	 
+が ga	ぎ gi	ぐ gu	げ ge	ご go	ぎゃ gya	ぎゅ gyu	ぎょ gyo
+ざ za	じ zi	ず zu	ぜ ze	ぞ zo	じゃ zya	じゅ zyu	じょ zyo
+だ da	ぢ di	づ du	で de	ど do	ぢゃ dya	ぢゅ dyu	ぢょ dyo
+ば ba	び bi	ぶ bu	べ be	ぼ bo	びゃ bya	びゅ byu	びょ byo
+ぱ pa	ぴ pi	ぷ pu	ぺ pe	ぽ po	ぴゃ pya	ぴゅ pyu	ぴょ pyo
+ 	くゎ kwa	
+ 	ぐゎ gwa	
+
+-------------------------------
+MZ-80 ASCII
+"ァィゥェォャュョッ"の変換
+・"ャュョ"のとき
+　前がIならIを取ってYA/YU/YOとする
+・"ァィゥェォ"
+　前がHUならUを取ってFA/FI/FU/FU/FE/FO
+　ちぇ=TI -> CHE
+・"ッ"
+　次の文字を変換して、
+　AIUEOで無ければ先頭文字を重ねる
+　AIUEOならTT

@@ -1,0 +1,78 @@
+#!/bin/bash
+
+ITNR="[31;1m"
+ITNG="[32;1m"
+ITNY="[33;1m"
+ITNB="[34;1m"
+ITNM="[35;1m"
+ITNC="[36;1m"
+ITNW="[37;1m"
+ITN="${ITNY}"
+NOR="[0m"
+
+ROMSIZE=4096
+PADDING="\377"  # $FF
+DEBUG=${DEBUG:-0}
+#SWITCH="SLIDE"
+SWITCH="TOGGLE"
+
+# Catch errors and display the offending line number:
+set -e
+trap 'echo "${ITNR}$0 FAILED at line ${LINENO}${NOR}"' ERR
+
+cd $(dirname $0) ; CWD=$(pwd)
+
+# pre-process
+for n in 1 2; do
+  chmod 644 FD_rom$n.asm
+  rm -vf *.BAK *.bak
+  if [ "$DEBUG" = "1" ]; then
+    sed -re 's/^dbg\(([0-9]+)\)/	PUSH	AF		\; kao\
+	LD	A,\1		\; kao\
+	LD	(0D000H),A	\; kao\
+	POP	AF		\; kao\
+/g' FD_rom$n.asm | iconv -f utf-8 -t ms932 | sed -e 's/$/\r/g' > FD_rom$n.s
+  else
+    sed -re 's/^dbg\(([0-9]+)\)//g' FD_rom$n.asm | lv -Iu -Os | sed -e 's/$/\r/g' > FD_rom$n.s
+  fi
+done
+
+# build
+for i in FD_rom1 FD_rom2; do
+  find . -iname "$i.bin" -delete
+  find . -iname "$i.prn" -delete
+  find . -iname "$i.hex" -delete
+  zasm -C$i.bin -L$i.PRN -Z $i.s 2>&1 | tee asm.log
+  find . -iname "$i.bin" -exec mv -f "{}" "$i.bin" \;
+  find . -iname "$i.prn" -exec mv -f "{}" "$i.PRN" \;
+  if ! grep -qFe '  0 warning(s),   0 error(s) in assembly.' asm.log; then
+    echo "${ITNY}$i.s: Assemble error !$NOR" 1>&2
+    exit 1
+  fi
+  rm -f asm.log
+  SZ=$(stat --print %s "$i.bin")
+  if [ "$SZ" -gt "$ROMSIZE" ]; then
+    echo "${ITNY}$i.bin: size ($SZ) exceeds ROMSIZE ($ROMSIZE)$NOR" 1>&2
+    ls -al *.bin 1>&2
+    exit 1
+  fi
+done
+
+# padding & combine
+dd if=/dev/zero bs=1 count=$ROMSIZE | LC_ALL=C tr "\000" $PADDING > padding.bin
+cat FD_rom1.bin padding.bin | dd bs=1 count=$ROMSIZE > 1.BIN
+cat FD_rom2.bin padding.bin | dd bs=1 count=$ROMSIZE > 2.BIN
+rm -f padding.bin
+if [ "$SWITCH" = "SLIDE" ]; then
+  cat 1.BIN 2.BIN > FD_rom.BIN
+  rm -f 1.BIN 2.BIN
+elif [ "$SWITCH" = "TOGGLE" ]; then
+  cat 2.BIN 1.BIN > FD_rom.BIN
+  rm -f 1.BIN 2.BIN
+else
+  rm -f 1.BIN 2.BIN
+  echo "Please specify SWITCH = 'SLIDE' or 'TOGGLE'." 1>&2
+  exit 1
+fi
+
+ls -al *.bin *.BIN

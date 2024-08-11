@@ -1,0 +1,72 @@
+			  Z80 ASSEMBLER - ZASM VER 1.6
+  0000                	?;2024. 7.25 MZ-80AのSA-1510対応 (SA-1510だけROMパッチのアドレスが違うため)
+                      	
+                      	
+  F000                				ORG	0F000H
+                      	
+  F000  FF            				DB	0FFH             ;ROMなし識別コード
+  F001  C313F0        				JP		START
+                      	;******************** MONITOR CMTルーチンへリターン *************************************
+  F004  C330F0        				JP		MSHED			; $F004
+  F007  C336F0        				JP		MSDAT			; $F007
+  F00A  C342F0        				JP		MLHED			; $F00A
+  F00D  C34EF0        				JP		MLDAT			; $F00D
+  F010  C35AF0        				JP		MVRFY			; $F010
+  F013                	START:
+  F013  2166F0        				LD	HL,DATA			;DATAからLENGTHバイトをTRNSにコピーしてDSTRTから実行
+  F016  ED5B26F0      				LD	DE,(TRNS)
+  F01A  ED4B24F0      				LD	BC,(LENGTH)
+  F01E  EDB0          				LDIR
+  F020  2A28F0        				LD	HL,(DSTRT)
+  F023  E9            				JP	(HL)
+  F024                	LENGTH:
+  F024  C003          				DW 03C0H
+  F026                	TRNS:
+  F026  405A          				DW 5A40H
+  F028                	DSTRT:
+  F028  005B          				DW 5B00H
+                      	
+  F02A                	IS_SA1510:
+  F02A  3A0D01        				LD		A,(010DH)		;010DHが'A'ならMZ-80A ("SA-1510"の"A")
+  F02D  FE41          				CP		'A'
+  F02F  C9            				RET
+                      	
+  F030                	MSHED:							;JUMPしてきた先にリターン
+  F030  D5            				PUSH	DE			;PUSH命令をつぶしてJUMPしてきているので代わりにPUSHはしておく
+  F031  C5            				PUSH	BC
+  F032  E5            				PUSH	HL
+                      	;;			CALL	IS_SA1510
+                      	;;			JP	Z,043AH
+  F033  C33A04        				JP	043AH
+  F036                	MSDAT:
+  F036  D5            				PUSH	DE
+  F037  C5            				PUSH	BC
+  F038  E5            				PUSH	HL
+  F039  CD2AF0        				CALL	IS_SA1510
+  F03C  CA7404        				JP	Z,0474H
+  F03F  C37904        				JP	0479H
+  F042                	MLHED:
+  F042  D5            				PUSH	DE
+  F043  C5            				PUSH	BC
+  F044  E5            				PUSH	HL
+  F045  CD2AF0        				CALL	IS_SA1510
+  F048  CAD304        				JP	Z,04D3H
+  F04B  C3DC04        				JP	04DCH
+  F04E                	MLDAT:
+  F04E  D5            				PUSH	DE
+  F04F  C5            				PUSH	BC
+  F050  E5            				PUSH	HL
+  F051  CD2AF0        				CALL	IS_SA1510
+  F054  CAF304        				JP	Z,04F3H
+  F057  C3FC04        				JP	04FCH
+  F05A                	MVRFY:
+  F05A  D5            				PUSH	DE
+  F05B  C5            				PUSH	BC
+  F05C  E5            				PUSH	HL
+  F05D  CD2AF0        				CALL	IS_SA1510
+  F060  CA7905        				JP	Z,0579H
+  F063  C38C05        				JP	058CH
+                      	
+  F066                	DATA:							;ここから起動したいプログラムを展開(4023Byte利用可能)
+  F066                				END
+
